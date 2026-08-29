@@ -135,6 +135,7 @@ h1 { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 21px;
   color: var(--amber); text-shadow: 0 0 24px rgba(245,166,35,0.25);
 }
 .pa-back-text { font-size: 14.5px; line-height: 1.55; text-align: left; color: var(--text); }
+.pa-back-text .full-text-line { display: block; margin-bottom: 6px; }
 
 .letters-cue-text {
   font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 700;
@@ -1300,8 +1301,10 @@ function renderLettersCard() {
   ).join('');
   document.getElementById('lettersCueText').innerHTML = cueHtml;
 
-  const fullHtml = paragraph.join(' ');
-  document.getElementById('lettersFullText').textContent = fullHtml;
+  const fullHtml = paragraph.map(s =>
+    '<span class="full-text-line">' + s + '</span>'
+  ).join('');
+  document.getElementById('lettersFullText').innerHTML = fullHtml;
 
   document.getElementById('lettersFlashcard').classList.remove('flipped');
   const pct = (lettersParaIdx / total) * 100;
