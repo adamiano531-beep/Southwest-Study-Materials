@@ -287,6 +287,12 @@ h1 { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 21px;
 
 footer { text-align: center; color: var(--muted); font-size: 11.5px; margin-top: 24px; font-family: 'IBM Plex Mono', monospace; }
 
+/* Letter Cues content can run to 8 lines on the longer paragraphs — give it real room
+   and anchor content to the top so overflow scrolls downward instead of centering
+   (which used to clip both the first and last lines with no visible scrollbar). */
+#lettersFlashcard { min-height: 500px; }
+#lettersFlashcard .face { justify-content: flex-start; padding-top: 26px; }
+
 /* ---- Time Zones reference ---- */
 .tz-table-wrap {
   border: 1px solid var(--hairline); border-radius: 14px; padding: 4px; margin-bottom: 16px;
@@ -1256,20 +1262,35 @@ document.getElementById('shuffleBackBtn').addEventListener('click', () => showPA
 
 /* ===================== LETTER CUES (first-letter mnemonic flashcards) ===================== */
 function letterForWord(word) {
-  // Words in these scripts are built from three possible parts, in order:
-  //   [leading letters/digits] [a run of blank underscores] [trailing punctuation]
-  // e.g. "are__________," = "are" + "__________" + ","
-  //      "#__________,"   = ""    + "__________" + ","
-  //      "is__________."  = "is"  + "__________" + "."
-  //      "flight"         = "flight" (no blank, no trailing punctuation)
-  const leadingMatch = word.match(/^[A-Za-z0-9]+/);
-  const base = leadingMatch ? leadingMatch[0][0].toUpperCase() : '';
-  const hasBlank = word.indexOf('_') !== -1;
+  // A word can contain, in order: leading letters/digits, hyphen-joined additional
+  // word-parts (each contributing its own letter), blank underscore runs (each shown
+  // as "_"), and trailing punctuation. Every hyphen-separated part and every letter
+  // segment around a blank gets its own letter — nothing is silently dropped.
+  //   "are__________,"      -> "A_,"
+  //   "forward-ceiling"      -> "F-C"
+  //   "737-700."             -> "7-7."
+  //   "(with"                -> "W"      (leading punctuation is skipped, not counted)
+  //   "hour-and-minute__"    -> "H-A-M_"
+  //   "to_Tucson_."          -> "T_T_."
   const trailMatch = word.match(/[^\w]+$/);
   const trail = trailMatch ? trailMatch[0] : '';
+  const core = trail ? word.slice(0, word.length - trail.length) : word;
+  if (!core) return word.length ? word[0] : '';
 
-  if (!base && !hasBlank && !trail) return word.length ? word[0] : '';
-  return base + (hasBlank ? '_' : '') + trail;
+  const hyphenParts = core.split('-').filter(p => p.length > 0);
+  if (hyphenParts.length === 0) return word.length ? word[0] : '';
+
+  const partCues = hyphenParts.map(part => {
+    const pieces = part.split(/(_+)/).filter(p => p.length > 0);
+    if (pieces.length === 0) return part.length ? part[0] : '';
+    return pieces.map(piece => {
+      if (/^_+$/.test(piece)) return '_';
+      const m = piece.match(/[A-Za-z0-9]/);
+      return m ? m[0].toUpperCase() : piece[0];
+    }).join('');
+  });
+
+  return partCues.join('-') + trail;
 }
 
 function sentenceToCue(sentence) {
