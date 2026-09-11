@@ -949,7 +949,7 @@ topicLeadership.addEventListener('click', () => switchTopic('leadership'));
 topicTimezones.addEventListener('click', () => switchTopic('timezones'));
 
 /* ===================== KEY PAs — pinned at the top of every PA list ===================== */
-const KEY_PA_IDS = ['opening', 'emergency-briefing'];
+const KEY_PA_IDS = ['arm-cross-check', 'disarm-cross-check', 'arrival'];
 const KEY_PAS = PAS.filter(p => KEY_PA_IDS.includes(p.id));
 const OTHER_PAS = PAS.filter(p => !KEY_PA_IDS.includes(p.id));
 
@@ -1057,7 +1057,7 @@ function renderPASelectList() {
   if (keyPool.length) {
     const keyHeading = document.createElement('div');
     keyHeading.className = 'pa-select-heading key-heading';
-    keyHeading.textContent = '⭐ Key PAs — Opening & Emergency Briefing';
+    keyHeading.textContent = '⭐ Key PAs';
     list.appendChild(keyHeading);
     keyPool.forEach(pa => list.appendChild(makePASelectItem(pa, true)));
   }
